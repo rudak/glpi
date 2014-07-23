@@ -2814,7 +2814,7 @@ class Ticket extends CommonITILObject {
       $rand = mt_rand();
 
       if ($_SESSION["glpiactiveprofile"]["helpdesk_hardware"] == 0) {
-         echo "<input type='hidden' name='$myname' value='0'>";
+         echo "<input type='hidden' name='$myname' value=''>";
          echo "<input type='hidden' name='items_id' value='0'>";
 
       } else {
@@ -3405,7 +3405,9 @@ class Ticket extends CommonITILObject {
                     'slas_id'                   => 0,
                     '_add_validation'           => 0,
                     'type'                      => $type,
-                    '_documents_id'             => array());
+                    '_documents_id'             => array(),
+                    '_filename'                 => array(),
+                    '_tag_filename'             => array());
    }
 
 
@@ -3548,6 +3550,7 @@ class Ticket extends CommonITILObject {
 
       // Restore saved value or override with page parameter
       $saved = $this->restoreInput();
+
       foreach ($default_values as $name => $value) {
          if (!isset($values[$name])) {
             if (isset($saved[$name])) {
@@ -3658,7 +3661,7 @@ class Ticket extends CommonITILObject {
       } else {
          $values['_predefined_fields'] = array();
       }
-
+      
       // Store predefined fields to be able not to take into account on change template
       // Only manage predefined values on ticket creation
       $predefined_fields = array();
@@ -4519,7 +4522,12 @@ class Ticket extends CommonITILObject {
       echo "<tr class='tab_bg_1'>";
       echo "<td colspan='$colspan'>";
       echo $tt->getBeginHiddenFieldValue('_documents_id');
-      echo Html::file(array('multiple' => true, 'showfilecontainer' => 'fileupload_info'));
+
+      echo Html::file(array('multiple' => true,
+                            'showfilecontainer' => 'fileupload_info',
+                            'values' => array('filename' => $values['_filename'],
+                                              'tag' => $values['_tag_filename'])
+                            ));
       echo "</td>";
       if ($CFG_GLPI['use_rich_text']) {
          echo "<td colspan='$colspan'>";

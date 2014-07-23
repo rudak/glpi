@@ -1217,10 +1217,10 @@ class Html {
 
          foreach ($allassets as $type) {
             if (isset($menu['assets']['content'][strtolower($type)])) {
-               $menu['assets']['content']['state']['title']            = __('Global');
-               $menu['assets']['content']['state']['shortcut']         = '';
-               $menu['assets']['content']['state']['page']             = '/front/allassets.php';
-               $menu['assets']['content']['state']['links']['search']  = '/front/allassets.php';
+               $menu['assets']['content']['allassets']['title']            = __('Global');
+               $menu['assets']['content']['allassets']['shortcut']         = '';
+               $menu['assets']['content']['allassets']['page']             = '/front/allassets.php';
+               $menu['assets']['content']['allassets']['links']['search']  = '/front/allassets.php';
                break;
             }
          }
@@ -4864,6 +4864,7 @@ class Html {
       $p['pasteZone']         = false;
       $p['dropZone']          = 'dropdoc'.$randupload;
       $p['rand']              = $randupload;
+      $p['values']            = array();
 
       if (is_array($options) && count($options)) {
          foreach ($options as $key => $val) {
@@ -4971,6 +4972,7 @@ class Html {
       $p['pasteZone']         = false;
       $p['dropZone']          = 'dropdoc'.$randupload;
       $p['rand']              = $randupload;
+      $p['values']            = array();
 
       if (is_array($options) && count($options)) {
          foreach ($options as $key => $val) {
@@ -5036,29 +5038,7 @@ class Html {
                         success: function(tag){
                            $.each(filedata.result.".$p['name'].", function (index, file) {
                               if (file.error == undefined) {\n
-                                 var p = $('<p/>').attr('id',file.id).html('<b>".__('File')." : </b>'+file.display+' <b>".__('Tag')." : </b>'+tag[index].tag).appendTo('#".$p['showfilecontainer']."');\n
-                                 var p2 = $('<p/>').attr('id',file.id+'2').css({'display':'none'}).appendTo('#".$p['showfilecontainer']."');\n
-
-                                 // File
-                                 $('<input/>').attr('type', 'hidden').attr('name', '_".$p['name']."['+fileindex".$p['rand']."+']').attr('value',file.name).appendTo(p);\n
-
-                                 // Tag
-                                 $('<input/>').attr('type', 'hidden').attr('name', '_tag_".$p['name']."['+fileindex".$p['rand']."+']').attr('value', tag[index].name).appendTo(p);\n
-
-                                 // Coordinates
-                                 if (tinyMCE != undefined
-                                       && tinyMCE.imagePaste != undefined
-                                       && (tinyMCE.imagePaste.imageCoordinates != undefined || tinyMCE.imagePaste.imageCoordinates != null)) {
-                                    $('<input/>').attr('type', 'hidden').attr('name', '_coordinates['+fileindex".$p['rand']."+']').attr('value', encodeURIComponent(JSON.stringify(tinyMCE.imagePaste.imageCoordinates))).appendTo(p2);
-                                    tinyMCE.imagePaste.imageCoordinates = null;
-                                 }
-
-                                 // Delete button
-                                 var elementsIdToRemove = {0:file.id, 1:file.id+'2'};
-                                 $('<img src=\"".$CFG_GLPI['root_doc']."/pics/delete.png\">').click(function(){\n
-                                    deleteImagePasted(elementsIdToRemove, tag[index].tag);\n
-                                 }).appendTo(p);\n
-
+                                 displayUploadedFile".$p['rand']."(file,tag[index]);
                                  ";
       if ($p['imagePaste']) {
          $script.= "             // Insert tag in textarea
@@ -5085,7 +5065,32 @@ class Html {
 
                }
             });
-         }\n
+         };\n
+         function displayUploadedFile".$p['rand']."(file, tag){
+            var p = $('<p/>').attr('id',file.id).html('<b>".__('File')." : </b>'+file.display+' <b>".__('Tag')." : </b>'+tag.tag+' ').appendTo('#".$p['showfilecontainer']."');\n
+            var p2 = $('<p/>').attr('id',file.id+'2').css({'display':'none'}).appendTo('#".$p['showfilecontainer']."');\n
+
+            // File
+            $('<input/>').attr('type', 'hidden').attr('name', '_".$p['name']."['+fileindex".$p['rand']."+']').attr('value',file.name).appendTo(p);\n
+
+            // Tag
+            $('<input/>').attr('type', 'hidden').attr('name', '_tag_".$p['name']."['+fileindex".$p['rand']."+']').attr('value', tag.name).appendTo(p);\n
+
+            // Coordinates
+            if (tinyMCE != undefined
+                  && tinyMCE.imagePaste != undefined
+                  && (tinyMCE.imagePaste.imageCoordinates != undefined || tinyMCE.imagePaste.imageCoordinates != null)) {
+               $('<input/>').attr('type', 'hidden').attr('name', '_coordinates['+fileindex".$p['rand']."+']').attr('value', encodeURIComponent(JSON.stringify(tinyMCE.imagePaste.imageCoordinates))).appendTo(p2);
+               tinyMCE.imagePaste.imageCoordinates = null;
+            }
+
+            // Delete button
+            var elementsIdToRemove = {0:file.id, 1:file.id+'2'};
+            $('<img src=\"".$CFG_GLPI['root_doc']."/pics/delete.png\">').click(function(){\n
+               deleteImagePasted(elementsIdToRemove, tag.tag);\n
+            }).appendTo(p);\n
+
+         }
          function deleteImagePasted(elementsIdToRemove, tagToRemove){\n
             // Remove file display lines
             $.each(elementsIdToRemove, function (index, id) {\n
@@ -5104,8 +5109,24 @@ class Html {
             if (fileindex".$p['rand']." > 0) {\n
                fileindex".$p['rand']."--;\n
             }
-         }\n";
+         };\n";
 
+//       if (is_array($p['values']) && isset($p['values']['filename'])
+//          && is_array($p['values']['filename']) && count($p['values']['filename'])) {
+//          foreach ($p['values']['filename'] as $key => $name) {
+//             if (isset($p['values']['tag'][$key])) {
+//                $script .= "var tag$key = {};
+//                            tag$key.tag = '".$p['values']['tag'][$key]."';
+//                            tag$key.name = '#".$p['values']['tag'][$key]."#';
+//                            var file$key= {};
+//                            file$key.name = '".$p['values']['filename'][$key]."';
+//                            file$key.display = '".$p['values']['filename'][$key]."';
+//                            file$key.id = 'file$key';
+//                            displayUploadedFile".$p['rand']."(file$key, tag$key);
+//                            ";
+//             }
+//          }
+//       }
       return $script;
    }
 
